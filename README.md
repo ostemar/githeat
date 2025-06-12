@@ -1,4 +1,4 @@
-![githeat example](assets/githeat_example.png)
+![githeat example](assets/githeat-example.png)
 
 Githeat is a tool for showing a heat map of your git activity.
 
