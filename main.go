@@ -1,6 +1,6 @@
 package main
 
-import "githeat/cmd"
+import "github.com/ostemar/githeat/cmd"
 
 func main() {
 	cmd.Execute()
