@@ -1,4 +1,4 @@
-module githeat
+module github.com/ostemar/githeat
 
 go 1.24.3
 
