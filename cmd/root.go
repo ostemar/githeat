@@ -12,6 +12,7 @@ import (
 
 var (
 	days    int
+	user    string
 	rootCmd = &cobra.Command{
 		Use:   "githeat",
 		Short: "GitHeat is a tool to visualize git repository activity",
@@ -29,7 +30,7 @@ var (
 
 			sinceDate := time.Now().AddDate(0, 0, -days)
 
-			commitMap, err := getCommitsByDate(repoPath, sinceDate)
+			commitMap, err := getCommitsByDate(repoPath, sinceDate, user)
 			if err != nil {
 				return err
 			}
@@ -117,16 +118,31 @@ var (
 	}
 )
 
-func getCommitsByDate(repoPath string, sinceDate time.Time) (map[string][]struct {
+func getCommitsByDate(repoPath string, sinceDate time.Time, user string) (map[string][]struct {
 	SHA  string
 	Tags string
 }, error,
 ) {
-	gitcmd := exec.Command("git", "log",
-		"--since="+sinceDate.Format("2006-01-02"),
+	args := []string{
+		"log",
+		"--since=" + sinceDate.Format("2006-01-02"),
 		"--pretty=format:%ad %h %d",
 		"--date=short",
-		"--first-parent")
+	}
+	if user != "" {
+		args = append(args,
+			"--all",
+			"--branches=*",
+			"--remotes=*",
+			"--no-merges",
+			"--author="+user,
+		)
+	} else {
+		args = append(args,
+			"--first-parent",
+		)
+	}
+	gitcmd := exec.Command("git", args...)
 	gitcmd.Dir = repoPath
 	output, err := gitcmd.Output()
 	if err != nil {
@@ -197,7 +213,9 @@ func colorize(count int, background bool) string {
 		}
 	} else {
 		switch {
-		case count >= 9:
+		case count >= 10:
+			return "\033[38;5;203m󰈸\033[0m" // Light Red (Fire)
+		case count == 9:
 			return "\033[38;5;191m9\033[0m" // Very Light Green
 		case count == 8:
 			return "\033[38;5;154m8\033[0m" // Light Green
@@ -222,7 +240,8 @@ func colorize(count int, background bool) string {
 }
 
 func init() {
-	rootCmd.Flags().StringP("repo", "r", "", "Path to the git repository")
+	rootCmd.Flags().StringP("repo", "r", ".", "Path to the git repository")
+	rootCmd.Flags().StringVarP(&user, "user", "u", "", "Filter commits by user (author)")
 	rootCmd.Flags().IntVarP(&days, "days", "d", 365, "Number of days to look back for commits")
 }
 
