@@ -117,17 +117,33 @@ var (
 
 			// Print monthly totals aligned with month labels
 			fmt.Printf("     ")
+			printed := 5
 			for w := 0; w < weekCount; {
 				if monthLabels[w] != "" {
 					weekStart := monday.AddDate(0, 0, w*7)
 					monthKey := weekStart.Format("2006-01")
 					fmt.Printf("\033[38;5;243m%-4d\033[0m", monthTotals[monthKey])
+					printed += 4
 					w += 2
 				} else {
 					fmt.Printf("  ")
+					printed += 2
 					w++
 				}
 			}
+			var grandTotal int
+			for _, t := range weekdayTotals {
+				grandTotal += t
+			}
+			// Daily line width: 5 (prefix) + weekCount*2 (grid) + 3 + 3 + 1 + 2 (suffix) = target
+			// Σ is at position target-3 (aligned with last char of day name), number ends at target
+			target := 5 + weekCount*2 + 9
+			grandStr := fmt.Sprintf("Σ %d", grandTotal)
+			pad := target - printed - len(grandStr)
+			if pad > 0 {
+				fmt.Printf("%*s", pad, "")
+			}
+			fmt.Printf("\033[38;5;243m%s\033[0m", grandStr)
 			fmt.Println()
 
 			return nil
