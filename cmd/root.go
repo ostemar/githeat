@@ -38,6 +38,7 @@ var (
 			// Prepare a map for quick lookup
 			commitCountByDate := make(map[string]int)
 			weekdayTotals := make([]int, 7)
+			monthTotals := make(map[string]int)
 			for date, commits := range commitMap {
 				commitCountByDate[date] = len(commits)
 				parsedDate, err := time.Parse("2006-01-02", date)
@@ -49,6 +50,7 @@ var (
 						wd = wd - 1 // Monday as 0
 					}
 					weekdayTotals[wd] += len(commits)
+					monthTotals[parsedDate.Format("2006-01")] += len(commits)
 				}
 			}
 
@@ -69,10 +71,10 @@ var (
 					monthPrinted[monthKey] = true
 				}
 			}
-			fmt.Printf("    ")
+			fmt.Printf("     ")
 			for w := 0; w < weekCount; {
 				if monthLabels[w] != "" {
-					fmt.Printf("%4s", monthLabels[w])
+					fmt.Printf("%-4s", monthLabels[w])
 					w += 2
 				} else {
 					fmt.Printf("  ")
@@ -109,9 +111,24 @@ var (
 				for w := range weekCount {
 					fmt.Printf("%s ", matrix[i][w])
 				}
-				fmt.Printf("   %2d %s", weekdayTotals[i], day)
+				fmt.Printf("   %-3s \033[38;5;243m%2d\033[0m", day, weekdayTotals[i])
 				fmt.Println()
 			}
+
+			// Print monthly totals aligned with month labels
+			fmt.Printf("     ")
+			for w := 0; w < weekCount; {
+				if monthLabels[w] != "" {
+					weekStart := monday.AddDate(0, 0, w*7)
+					monthKey := weekStart.Format("2006-01")
+					fmt.Printf("\033[38;5;243m%-4d\033[0m", monthTotals[monthKey])
+					w += 2
+				} else {
+					fmt.Printf("  ")
+					w++
+				}
+			}
+			fmt.Println()
 
 			return nil
 		},
